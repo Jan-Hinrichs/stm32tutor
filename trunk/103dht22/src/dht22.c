@@ -37,7 +37,7 @@ static void doBitbang2(DHT_BusHandle *bus, u32 now, u8 *notReadySensors){
 
 	//prüfe jedes Inputbits, ob es eine negative Flanke gab
 	for(i=0;i<MAX_COUNT_OF_DHT22;i++){
-		if(flanke & (1<<i)){
+		if((flanke & (1<<i)) && nextAction[i]<40){ //konnte eine fallende Flanke festgestellt werden und hat es bisher nicht zu viele Flanken gegeben
 			(*notReadySensors)=1;
 			if(nextAction[i]>=0){
 				tmp = nextAction[i] / 8; //bei welchem Byte sind wir angelangt
