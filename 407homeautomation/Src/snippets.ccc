@@ -1,0 +1,57 @@
+/* Circular buffer object */
+typedef struct {
+    uint8_t		start;  /* index of oldest element              */
+    uint8_t     end;    /* index at which to write new element  */
+    uint8_t   	elems[CIRCULARBUFFERSIZE];  /* vector of elements                   */
+} CircularBuffer_t;
+
+void cbInit(CircularBuffer_t *cb, uint8_t initVal) {
+    //cb->size  = size + 1; /* include empty elem */
+    cb->start = 0;
+    uint8_t i;
+    for(i=0;i<CIRCULARBUFFERSIZE-1;i++)
+    {
+    	cb->elems[i]=initVal;
+    }
+    cb->end   = CIRCULARBUFFERSIZE-1;
+}
+
+
+int cbIsFull(CircularBuffer_t *cb) {
+    return (cb->end + 1) % CIRCULARBUFFERSIZE == cb->start;
+}
+
+int cbIsEmpty(CircularBuffer_t *cb) {
+    return cb->end == cb->start;
+}
+
+/* Write an element, overwriting oldest element if buffer is full. App can
+   choose to avoid the overwrite by checking cbIsFull(). */
+void cbWrite(CircularBuffer_t *cb, uint8_t elem) {
+    cb->elems[cb->end] = elem;
+    cb->end = (cb->end + 1) % CIRCULARBUFFERSIZE;
+    if (cb->end == cb->start)
+        cb->start = (cb->start + 1) % CIRCULARBUFFERSIZE; /* full, overwrite */
+}
+
+/* Read oldest element. App must ensure !cbIsEmpty() first. */
+uint8_t cbRead(CircularBuffer_t *cb) {
+    uint8_t elem = cb->elems[cb->start];
+    cb->start = (cb->start + 1) % CIRCULARBUFFERSIZE;
+    return elem;
+}
+
+typedef struct
+{
+	CircularBuffer_t puffer; //alle 5 Minuten: neuen Messwert in den Ringpuffer schreiben und Sollwertvorgabe berechnen
+	//PID-Controller �berblickt dann etwa 5h
+	//Jeder PID hat eigene Multiplikatoren, weil die R�ume eine andere Charakteristik haben k�nnen
+	//Identifikation des Parameter �ber Sprungantwort und Ziegler-Nichols
+	//Initial nach dem Starten des Systems soll angenommen werden, dass die Raumtemperatur konstant die
+	//aktuelle Temperatur hatte. Fraglich ist, ob man bei dieser einfachen Konstruktion des Ringpuffers
+	//�berhaupt zwei pointer haben muss. Eigentlich ist ja nur ein Pointer Notwendig, der auf das n�chste zu �berschreibende Element zeigt
+	double T_p;
+	double T_i;
+	double T_d;
+	double runningSum; //TODO oder eine beliebige andere Hilfsvariable
+} PIDRegulator_t;
