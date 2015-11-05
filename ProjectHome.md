@@ -1,0 +1,1 @@
+Example projects for STM32F4 series in Eclipse CDT, GnuArmEclipse and GNU ARM GCC
